@@ -3482,26 +3482,40 @@ export class NzDemoTableSortFilterComponent implements OnInit {
           worksheet.addRow(scheudle);
         });
 
+        /*
         worksheet.eachRow((row, rowNumber) => {
-          row.eachCell((cell, colNumber) => {
-            if (colNumber > 5) {
+          if (rowNumber > 1) {
+            row.eachCell((cell, colNumber) => {
               debugger;
-              const bgColor = this.filterTable.data[rowNumber]
-                ? this.filterTable.data[rowNumber][
-                    'bg_color_field' + colNumber
-                  ] || '#FFFFFF'
-                : '#FFFFFF';
+              if (colNumber > 5) {
+                let dataIdx = {
+                  row: rowNumber,
+                  col: colNumber,
+                };
 
-              console.log(bgColor);
+                if (
+                  this.filterTable.data[dataIdx.row] &&
+                  this.filterTable.data[dataIdx.row]['field' + dataIdx.col]
+                ) {
+                  let bgColor =
+                    this.filterTable.data[dataIdx.row][
+                      'bg_color_field' + dataIdx.col
+                    ];
 
-              row.getCell(colNumber).font = {
-                type: 'pattern',
-                color: { argb: bgColor.slice(1) },
-              };
-            }
-          });
+                  if (bgColor) {
+                    console.log('bgColor', bgColor);
+                    row.getCell(colNumber).fill = {
+                      type: 'pattern',
+                      pattern: 'solid',
+                      fgColor: { argb: bgColor.slice(1) },
+                    };
+                  }
+                }
+              }
+            });
+          }
         });
-
+        */
         this.download(workbook);
       }, 1000);
     }
