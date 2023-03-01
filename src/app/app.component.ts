@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
+import * as Excel from 'exceljs/dist/exceljs.min.js';
+import * as FileSaver from 'file-saver';
 
 import {
+  NzTableComponent,
   NzTableFilterFn,
   NzTableFilterList,
   NzTableSortFn,
@@ -41,12 +44,14 @@ interface ColumnItem {
   `,
   ],
   template: `
+
+  <button (click)="onClickExcelExport()">Export</button>
   <nz-table
   [nzBordered]="true"
   #filterTable
   [nzData]="releaseSchedule | slice : 2"
   nzTableLayout="fixed"
-  [nzPageSize]="20"
+  [nzPageSize]="nzPageSize"
   [nzScroll]="{ x: '1100px', y: 'calc(100vh - 130px)' }"
 >
   <thead>
@@ -151,6 +156,11 @@ interface ColumnItem {
   `,
 })
 export class NzDemoTableSortFilterComponent implements OnInit {
+  nzPageSize = 20;
+
+  @ViewChild('filterTable', { static: false })
+  filterTable?: NzTableComponent<any>;
+
   releaseSchedule: DataItem[] = [
     {
       field1: 'Attr_Vehicle_Name',
@@ -3431,5 +3441,80 @@ export class NzDemoTableSortFilterComponent implements OnInit {
         }
       });
     }
+  }
+
+  onClickExcelExport() {
+    const workbook = new Excel.Workbook();
+    const worksheet = workbook.addWorksheet('Planner');
+    const columns = [
+      {
+        header: '#',
+        key: 'row_idx',
+        width: 5,
+      },
+    ];
+    if (this.listOfColumns.length) {
+      this.listOfColumns.forEach((c, i) => {
+        let width = 100;
+
+        if (this.filterTable.listOfAutoColWidth[i]) {
+          const colWidth =
+            this.filterTable.listOfAutoColWidth[i + +1].match(/\d+/);
+          if (colWidth.length) {
+            width = parseInt(colWidth[0]) / 5;
+          }
+        }
+
+        columns.push({
+          key: c.name,
+          header: c.displayName,
+          width,
+        });
+      });
+
+      worksheet.columns = columns;
+
+      this.nzPageSize = this.filterTable.nzData.length;
+
+      setTimeout(() => {
+        this.filterTable.data.forEach((scheudle: any, i: number) => {
+          scheudle['row_idx'] = i + 1;
+          worksheet.addRow(scheudle);
+        });
+
+        worksheet.eachRow((row, rowNumber) => {
+          row.eachCell((cell, colNumber) => {
+            if (colNumber > 5) {
+              debugger;
+              const bgColor = this.filterTable.data[rowNumber]
+                ? this.filterTable.data[rowNumber][
+                    'bg_color_field' + colNumber
+                  ] || '#FFFFFF'
+                : '#FFFFFF';
+
+              console.log(bgColor);
+
+              row.getCell(colNumber).font = {
+                type: 'pattern',
+                color: { argb: bgColor.slice(1) },
+              };
+            }
+          });
+        });
+
+        this.download(workbook);
+      }, 1000);
+    }
+  }
+
+  download(workbook) {
+    let fileName = `Test.xlsx`;
+    workbook.xlsx.writeBuffer().then((buffer: BlobPart) => {
+      const data: Blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      this.nzPageSize = 20;
+      FileSaver.saveAs(data, fileName);
+    });
   }
 }
