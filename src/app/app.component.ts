@@ -3479,7 +3479,27 @@ export class NzDemoTableSortFilterComponent implements OnInit {
       setTimeout(() => {
         this.filterTable.data.forEach((scheudle: any, i: number) => {
           scheudle['row_idx'] = i + 1;
-          worksheet.addRow(scheudle);
+          let row = worksheet.addRow(scheudle);
+
+          row._cells.forEach((cell, cellIdx) => {
+            // DATE STYLES BASED ON STATUS
+            let bgColor = scheudle['bg_color_' + cell._column._key];
+
+            if (cellIdx === 5) {
+              bgColor = scheudle['vehicle_status_color'];
+            }
+
+            if (bgColor) {
+              worksheet.getCell(cell._address).font = {
+                size: 14,
+              };
+              worksheet.getCell(cell._address).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: bgColor.slice(1) },
+              };
+            }
+          });
         });
 
         /*
