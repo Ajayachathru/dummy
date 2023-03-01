@@ -3473,6 +3473,7 @@ export class NzDemoTableSortFilterComponent implements OnInit {
       });
 
       worksheet.columns = columns;
+      debugger;
 
       this.nzPageSize = this.filterTable.nzData.length;
 
@@ -3490,9 +3491,6 @@ export class NzDemoTableSortFilterComponent implements OnInit {
             }
 
             if (bgColor) {
-              worksheet.getCell(cell._address).font = {
-                size: 14,
-              };
               worksheet.getCell(cell._address).fill = {
                 type: 'pattern',
                 pattern: 'solid',
